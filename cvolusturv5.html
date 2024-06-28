@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Creator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 60%;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 50px;
+            border-radius: 8px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .form-group input[type="file"] {
+            padding: 3px;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        #cvPreview {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            display: none;
+        }
+        #cvPreview img {
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+        }
+        #downloadBtn {
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CV Oluşturma Uygulaması</h1>
+        <form id="cvForm">
+            <div class="form-group">
+                <label for="firstName">İsim:</label>
+                <input type="text" id="firstName" required>
+            </div>
+            <div class="form-group">
+                <label for="lastName">Soyisim:</label>
+                <input type="text" id="lastName" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Telefon Numarası:</label>
+                <input type="tel" id="phone" required>
+            </div>
+            <div class="form-group">
+                <label for="dob">Doğum Tarihi:</label>
+                <input type="date" id="dob" required>
+            </div>
+            <div class="form-group">
+                <label for="address">Adres:</label>
+                <input type="text" id="address" required>
+            </div>
+            <div class="form-group">
+                <label for="profilePicture">Profil Fotoğrafı:</label>
+                <input type="file" id="profilePicture" accept="image/*" required>
+            </div>
+            <div class="form-group">
+                <label for="experiences">İş Deneyimleri:</label>
+                <textarea id="experiences" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="skills">Yetenekler:</label>
+                <textarea id="skills" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="languages">Dil Becerileri:</label>
+                <textarea id="languages" rows="3" required></textarea>
+            </div>
+            <button type="button" onclick="createCV()">CV Oluştur</button>
+        </form>
+        <div id="cvPreview"></div>
+        <button id="downloadBtn" onclick="downloadCV()">PDF Olarak İndir</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        function createCV() {
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const phone = document.getElementById('phone').value;
+            const dob = document.getElementById('dob').value;
+            const address = document.getElementById('address').value;
+            const profilePicture = document.getElementById('profilePicture').files[0];
+            const experiences = document.getElementById('experiences').value;
+            const skills = document.getElementById('skills').value;
+            const languages = document.getElementById('languages').value;
+
+            if (!profilePicture) {
+                alert("Lütfen profil fotoğrafınızı yükleyin.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const cvContent = `
+                    <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px;">
+                        <h2 style="text-align: center; color: #333;">${firstName} ${lastName}</h2>
+                        <div style="text-align: center;">
+                            <img src="${event.target.result}" alt="Profil Fotoğrafı" style="border-radius: 50%;">
+                        </div>
+                        <p><strong>Telefon:</strong> ${phone}</p>
+                        <p><strong>Doğum Tarihi:</strong> ${dob}</p>
+                        <p><strong>Adres:</strong> ${address}</p>
+                        <h3>İş Deneyimleri</h3>
+                        <p>${experiences}</p>
+                        <h3>Yetenekler</h3>
+                        <p>${skills}</p>
+                        <h3>Dil Becerileri</h3>
+                        <p>${languages}</p>
+                    </div>
+                `;
+
+                document.getElementById('cvPreview').innerHTML = cvContent;
+                document.getElementById('cvPreview').style.display = 'block';
+                document.getElementById('downloadBtn').style.display = 'block';
+            };
+
+            reader.readAsDataURL(profilePicture);
+        }
+
+        function downloadCV() {
+            const { jsPDF } = window.jspdf;
+            const cvContent = document.getElementById('cvPreview');
+
+            html2canvas(cvContent).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                
+                const imgWidth = 210;
+                const pageHeight = 295;
+                const imgHeight = canvas.height * imgWidth / canvas.width;
+                let heightLeft = imgHeight;
+
+                let position = 0;
+
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+
+                pdf.save('cv.pdf');
+            });
+        }
+    </script>
+</body>
+</html>
